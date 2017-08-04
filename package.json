@@ -1,0 +1,34 @@
+{
+  "name": "sakai-assignment-to-brightspace-dropbox",
+  "version": "1.0.0",
+  "description": "Migrates assignments from Sakai to dropboxes in Brightspace",
+  "main": "app.js",
+  "dependencies": {
+    "fs-extra": "^4.0.1",
+    "valence": "^1.0.3"
+  },
+  "devDependencies": {
+    "babel-cli": "^6.24.1",
+    "babel-plugin-syntax-async-functions": "^6.13.0",
+    "babel-plugin-transform-regenerator": "^6.24.1",
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-es2015": "^6.24.1",
+    "watch": "^1.0.2"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "watch": "watch \"npm run build && npm run start\" src",
+    "build": "babel src -d build --presets es2015",
+    "start": "node build/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/itsmikechu/sakai-assignment-to-brightspace-dropbox.git"
+  },
+  "author": "Mike Chu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/itsmikechu/sakai-assignment-to-brightspace-dropbox/issues"
+  },
+  "homepage": "https://github.com/itsmikechu/sakai-assignment-to-brightspace-dropbox#readme"
+}
