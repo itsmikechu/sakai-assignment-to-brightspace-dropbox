@@ -6,12 +6,8 @@ import request from 'request-promise-native';
 
 class App {
     static main() {
-        const HOST = 'https://courses.ashworthcollege.edu';
-        const PORT = 443;
-
         const appContext = new D2L.ApplicationContext(config.appId, config.appKey);
-
-        const userContext = appContext.createUserContextWithValues(HOST, PORT, config.userId, config.userKey);
+        const userContext = appContext.createUserContextWithValues('https://courses.ashworthcollege.edu', 443, config.userId, config.userKey);
 
         const url = userContext.createAuthenticatedUrl('/d2l/api/lp/1.17/users/223', 'GET');
         console.log(url);
