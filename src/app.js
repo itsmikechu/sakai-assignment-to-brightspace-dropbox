@@ -1,13 +1,19 @@
-require("babel-polyfill");
-
 import D2L from 'valence';
 import config from './config.json';
 import request from 'request-promise-native';
+import Sakai from './Sakai'
 
 class App {
-    static main() {
-        const appContext = new D2L.ApplicationContext(config.appId, config.appKey);
-        const userContext = appContext.createUserContextWithValues('https://courses.ashworthcollege.edu', 443, config.userId, config.userKey);
+    static async main() {
+        const sakai = new Sakai();
+        
+        const loginCookie = await sakai.getLoginCookie(config.sakai.userId, config.sakai.password);
+        const assignments = await sakai.getAssignments('40d71ec5-7710-4523-9678-698d25ccbe08', loginCookie);
+        console.log(assignments);
+        return;
+
+        const appContext = new D2L.ApplicationContext(config.brightspace.appId, config.brightspace.appKey);
+        const userContext = appContext.createUserContextWithValues('https://courses.ashworthcollege.edu', 443, config.brightspace.userId, config.brightspace.userKey);
 
         const url = userContext.createAuthenticatedUrl('/d2l/api/lp/1.17/users/223', 'GET');
         console.log(url);
