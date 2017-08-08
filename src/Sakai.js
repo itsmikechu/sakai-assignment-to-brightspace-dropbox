@@ -24,7 +24,7 @@ class Sakai {
             });
     }
 
-    async getAssignments(siteUuid, loginCookie) {
+    makeOptions(requestPath, loginCookie) {
         const host = 'https://study.ashworthcollege.edu';
 
         const cookie = new tough.Cookie({
@@ -38,13 +38,23 @@ class Sakai {
         const jar = request.jar();
         jar.setCookie(cookie, host);
 
-        const options = {
-            url: `${host}/direct/assignment/site/${siteUuid}.json`,
+        return {
+            url: `${host}${requestPath}`,
             jar,
         };
-        return request.get(options)
+    }
+
+    async getAssignments(siteUuid, loginCookie) {
+        return request.get(this.makeOptions(`/direct/assignment/site/${siteUuid}.json`, loginCookie))
             .then((responseBody) => {
-                return JSON.parse(responseBody);
+                return JSON.parse(responseBody).assignment_collection;
+            });
+    }
+
+    async getAssignmentAttachments(assignment, loginCookie) {
+        return request.get(this.makeOptions(`/direct/assignment/item/${assignment.id}.json`, loginCookie))
+            .then((responseBody) => {
+                return JSON.parse(responseBody).attachments;
             });
     }
 }

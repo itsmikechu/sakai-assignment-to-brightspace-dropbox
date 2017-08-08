@@ -5,11 +5,12 @@ import Sakai from './Sakai'
 
 class App {
     static async main() {
-        const sakai = new Sakai();
-        
+        const sakai = new Sakai();        
         const loginCookie = await sakai.getLoginCookie(config.sakai.userId, config.sakai.password);
         const assignments = await sakai.getAssignments('40d71ec5-7710-4523-9678-698d25ccbe08', loginCookie);
-        console.log(assignments);
+        assignments.map(async (assignment) => {
+            console.log(await sakai.getAssignmentAttachments(assignment,loginCookie));
+        });
         return;
 
         const appContext = new D2L.ApplicationContext(config.brightspace.appId, config.brightspace.appKey);
