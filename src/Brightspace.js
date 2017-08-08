@@ -4,7 +4,7 @@ import D2L from 'valence';
 import request from 'request-promise-native';
 
 class Brightspace {
-    contextFactory(appId, appKey, userId, userKey) { 
+    contextFactory(appId, appKey, userId, userKey) {
         return (new D2L.ApplicationContext(appId, appKey))
             .createUserContextWithValues('https://courses.ashworthcollege.edu', 443, userId, userKey);
     }
@@ -15,6 +15,23 @@ class Brightspace {
 
         console.log(`Brightspace URL to call: ${uri}`);
         console.log(`Brightspace URL has auth in it: ${D2L.Auth.isAuthenticated(uri)}`);
+
+        const options = {
+            method,
+            uri,
+            resolveWithFullResponse: true,
+        };
+
+        return request(options);
+    }
+
+    async createDropboxFolder(assignmentName, instructions, context) {
+        const dropboxFolderUpdateData = {
+            Name: assignmentName,
+            CustomInstructions: instructions,
+        };
+        const method = 'POST'
+        const uri = context.createAuthenticatedUrl('/d2l/api/le/1.25/6649/dropbox/folders/', method);
 
         const options = {
             method,
