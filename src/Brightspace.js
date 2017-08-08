@@ -22,7 +22,7 @@ class Brightspace {
             resolveWithFullResponse: true,
         };
 
-        return request.get(options);
+        return request(options);
     }
 }
 
