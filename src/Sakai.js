@@ -9,6 +9,7 @@ class Sakai {
             uri: 'https://study.ashworthcollege.edu/direct/session',
             resolveWithFullResponse: true,
         };
+        const cookieKey = 'SAKAIID';
         return request.post(options)
             .form({
                 _username: username,
@@ -17,13 +18,15 @@ class Sakai {
             .then((response) => {
                 const sakaiCookie = response.headers['set-cookie'][0];
                 return {
-                    key: 'SAKAIID',
-                    value: sakaiCookie.substring(sakaiCookie.lastIndexOf('SAKAIID=')+8, sakaiCookie.indexOf(';')),
+                    key: cookieKey,
+                    value: sakaiCookie.substring(sakaiCookie.lastIndexOf(`${cookieKey}=`) + cookieKey.length + 1, sakaiCookie.indexOf(';')),
                 };
             });
     }
 
     async getAssignments(siteUuid, loginCookie) {
+        const host = 'https://study.ashworthcollege.edu';
+
         const cookie = new tough.Cookie({
             key: loginCookie.key,
             value: loginCookie.value,
@@ -31,14 +34,16 @@ class Sakai {
             httpOnly: true,
             maxAge: 31536000
         });
+
         const jar = request.jar();
-        jar.setCookie(cookie, 'https://study.ashworthcollege.edu');
+        jar.setCookie(cookie, host);
+
         const options = {
-            url: `https://study.ashworthcollege.edu/direct/assignment/site/${siteUuid}.json`,
+            url: `${host}/direct/assignment/site/${siteUuid}.json`,
             jar,
         };
         return request.get(options)
-            .then((responseBody)=> {
+            .then((responseBody) => {
                 return JSON.parse(responseBody);
             });
     }
