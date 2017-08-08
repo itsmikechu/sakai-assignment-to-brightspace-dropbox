@@ -21,6 +21,9 @@ class Sakai {
                     key: cookieKey,
                     value: sakaiCookie.substring(sakaiCookie.lastIndexOf(`${cookieKey}=`) + cookieKey.length + 1, sakaiCookie.indexOf(';')),
                 };
+            })
+            .catch(()=> {
+                return null;
             });
     }
 

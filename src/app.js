@@ -5,13 +5,18 @@ import Sakai from './Sakai'
 
 class App {
     static async main() {
-        const sakai = new Sakai();        
+        const sakai = new Sakai();
         const loginCookie = await sakai.getLoginCookie(config.sakai.userId, config.sakai.password);
-        const assignments = await sakai.getAssignments('40d71ec5-7710-4523-9678-698d25ccbe08', loginCookie);
-        assignments.map(async (assignment) => {
-            console.log(await sakai.getAssignmentAttachments(assignment,loginCookie));
-        });
-        return;
+        if (loginCookie) {
+            const assignments = await sakai.getAssignments('40d71ec5-7710-4523-9678-698d25ccbe08', loginCookie)
+            assignments.map(async (assignment) => {
+                assignment.attachments = await sakai.getAssignmentAttachments(assignment, loginCookie);
+            });
+            console.log(assignments[0]);
+        }
+        else {
+            console.log("Could not retrieve assignments. Perhaps config.json is missing or has incorrect sakai.userId or sakai.password. Continuing...");
+        }
 
         const appContext = new D2L.ApplicationContext(config.brightspace.appId, config.brightspace.appKey);
         const userContext = appContext.createUserContextWithValues('https://courses.ashworthcollege.edu', 443, config.brightspace.userId, config.brightspace.userKey);
