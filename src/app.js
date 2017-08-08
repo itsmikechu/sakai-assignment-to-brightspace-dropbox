@@ -22,9 +22,6 @@ class App {
         const brightspace = new Brightspace();
         const context = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey,config.brightspace.userId, config.brightspace.userKey);
 
-        const user = await brightspace.getUser(223,context);
-        console.log(user);
-
         await brightspace.createDropboxFolder('FromMigrationApp', 'Yay, you did it. Here are some instructions', context);
     }
 }

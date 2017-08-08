@@ -9,37 +9,29 @@ class Brightspace {
             .createUserContextWithValues('https://courses.ashworthcollege.edu', 443, userId, userKey);
     }
 
-    async getUser(userId, context) {  // for the purposes of testing, I'm trying to GET info a user
-        const method = 'GET'
-        const uri = context.createAuthenticatedUrl(`/d2l/api/lp/1.17/users/${userId}`, method);
-
-        console.log(`Brightspace URL to call: ${uri}`);
-        console.log(`Brightspace URL has auth in it: ${D2L.Auth.isAuthenticated(uri)}`);
-
-        const options = {
-            method,
-            uri,
-            resolveWithFullResponse: true,
-        };
-
-        return request(options);
-    }
-
     async createDropboxFolder(assignmentName, instructions, context) {
         const dropboxFolderUpdateData = {
+            CategoryId: null,
             Name: assignmentName,
-            CustomInstructions: instructions,
+            CustomInstructions: {
+                Text: instructions,
+                Html: `<p>${instructions}</p>`,
+            },
+            Availability: null,
+            GroupTypeId: null,
+            DueDate: null,
+            DisplayInCalendar: false,
+            NotificationEmail: null,
+            IsHidden: null,
         };
-        const method = 'POST'
-        const uri = context.createAuthenticatedUrl('/d2l/api/le/1.25/6649/dropbox/folders/', method);
+        const uri = context.createAuthenticatedUrl('/d2l/api/le/1.25/6649/dropbox/folders/', 'POST');
 
         const options = {
-            method,
             uri,
-            resolveWithFullResponse: true,
+            body: JSON.stringify(dropboxFolderUpdateData),
         };
 
-        return request(options);
+        return request.post(options);
     }
 }
 
