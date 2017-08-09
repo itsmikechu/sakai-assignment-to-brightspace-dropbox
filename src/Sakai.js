@@ -1,7 +1,5 @@
-require('babel-polyfill');
-
-import request from 'request-promise-native';
-import tough from 'tough-cookie';
+const request = require('request-promise-native');
+const tough = require('tough-cookie');
 
 class Sakai {
     async getLoginCookie(username, password) {
@@ -22,7 +20,7 @@ class Sakai {
                     value: sakaiCookie.substring(sakaiCookie.lastIndexOf(`${cookieKey}=`) + cookieKey.length + 1, sakaiCookie.indexOf(';')),
                 };
             })
-            .catch(()=> {
+            .catch(() => {
                 return null;
             });
     }
@@ -62,4 +60,4 @@ class Sakai {
     }
 }
 
-export default Sakai;
+module.exports = Sakai;

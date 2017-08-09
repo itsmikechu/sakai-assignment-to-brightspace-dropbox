@@ -1,8 +1,8 @@
 
-import config from './config.json';
-import request from 'request-promise-native';
-import Sakai from './Sakai';
-import Brightspace from './Brightspace';
+const config = require('./config.json');
+const request = require('request-promise-native');
+const Sakai = require('./Sakai');
+const Brightspace = require('./Brightspace');
 
 class App {
     static async main() {
@@ -20,7 +20,7 @@ class App {
         }
 
         const brightspace = new Brightspace();
-        const context = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey,config.brightspace.userId, config.brightspace.userKey);
+        const context = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
 
         await brightspace.createDropboxFolder('FromMigrationApp', 'Yay, you did it. Here are some instructions', context);
     }

@@ -1,7 +1,5 @@
-require('babel-polyfill');
-
-import D2L from 'valence';
-import request from 'request-promise-native';
+const D2L = require('valence');
+const request = require('request-promise-native');
 
 class Brightspace {
     contextFactory(appId, appKey, userId, userKey) {
@@ -35,4 +33,4 @@ class Brightspace {
     }
 }
 
-export default Brightspace;
+module.exports = Brightspace;
