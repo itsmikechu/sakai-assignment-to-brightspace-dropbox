@@ -1,4 +1,3 @@
-
 const config = require('./config.json');
 const request = require('request-promise-native');
 const Sakai = require('./Sakai');
