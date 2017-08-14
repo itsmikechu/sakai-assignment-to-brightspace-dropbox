@@ -2,27 +2,24 @@ const config = require('./config.json');
 const request = require('request-promise-native');
 const Sakai = require('./Sakai');
 const Brightspace = require('./Brightspace');
-const FileHandler = require('./FileHandler')
+const FileHandler = require('./FileHandler');
 
 class App {
-    static async process(assignmentInfo) {
+    static async process(assignmentInfo, loginCookie) {
         const sakai = new Sakai();
-        const loginCookie = await sakai.getLoginCookie(config.sakai.userId, config.sakai.password);
-        if (loginCookie) {
-            const assignments = await sakai.getAssignments('40d71ec5-7710-4523-9678-698d25ccbe08', loginCookie)
-            assignments.map(async (assignment) => {
-                assignment.attachments = await sakai.getAssignmentAttachments(assignment, loginCookie);
-            });
-            console.log(`Retrieved information on ${assignments.length} Sakai assignments.`);
-        }
-        else {
-            console.log("Could not retrieve assignments. Perhaps config.json is missing or has incorrect sakai.userId or sakai.password. Continuing...");
-        }
+
+        const assignments = await sakai.getAssignments(assignmentInfo.guid, loginCookie)
+        assignments.map(async (assignment) => {
+            assignment.attachments = await sakai.getAssignmentAttachments(assignment, loginCookie);
+        });
+        console.log(`Retrieved information on ${assignments.length} Sakai assignments.`);
+
+        console.log(assignments[0]);
 
         const brightspace = new Brightspace();
-        const context = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
+        //const context = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
 
-        await brightspace.createDropboxFolder('FromMigrationApp', 'Yay, you did it. Here are some instructions', ouid, context);
+        //await brightspace.createDropboxFolder('FromMigrationApp', 'Yay, you did it. Here are some instructions', ouid, context);
     }
 
     static async main() {
@@ -37,15 +34,26 @@ class App {
         const outputCsvFile = `${config.workingFolder}\\assignments-output.csv`;
 
         const header = fields.join(',');
+        if (!header.includes('guid') || !header.includes('ouid')) {
+            throw 'File must have column headers "guid" and "ouid" exactly.';
+        }
 
-        for (let assignment of assignments) {
-            await (new App()).process(assignment);
+        const sakai = new Sakai();
+        const loginCookie = await sakai.getLoginCookie(config.sakai.userId, config.sakai.password);
 
-            const csv = fields.map((fieldName) => {
-                return JSON.stringify(assignment[fieldName], replacer)
-            }).join(',');
+        if (loginCookie) {
+            for (let assignment of assignments) {
+                await App.process(assignment, loginCookie);
 
-            await fileHandler.appendStringToPath(`${csv}\r\n`, outputCsvFile);
+                const csv = fields.map((fieldName) => {
+                    return JSON.stringify(assignment[fieldName], replacer)
+                }).join(',');
+
+                await fileHandler.appendStringToPath(`${csv}\r\n`, outputCsvFile);
+            }
+        }
+        else {
+            console.log("Could not retrieve assignments. Perhaps config.json is missing or has incorrect sakai.userId or sakai.password. Continuing...");
         }
 
         console.log('Done with batch.');
