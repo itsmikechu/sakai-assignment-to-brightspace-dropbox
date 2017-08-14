@@ -7,13 +7,13 @@ class Brightspace {
             .createUserContextWithValues('https://courses.ashworthcollege.edu', 443, userId, userKey);
     }
 
-    async createDropboxFolder(assignmentName, instructions, targetOuid, context) {
+    async createDropboxFolder(assignmentName, htmlInstructions, targetOuid, context) {
         const dropboxFolderUpdateData = {
             CategoryId: null,
             Name: assignmentName,
             CustomInstructions: {
-                Type: 'Text',
-                Content: instructions,
+                Type: 'Html',
+                Content: htmlInstructions,
             },
             Availability: null,
             GroupTypeId: null,
