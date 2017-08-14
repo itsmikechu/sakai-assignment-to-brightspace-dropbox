@@ -22,7 +22,7 @@ class Brightspace {
             NotificationEmail: null,
             IsHidden: false,
         };
-        const uri = context.createAuthenticatedUrl(`d2l/api/le/1.25/${targetOuid}/dropbox/folders/`, 'POST');
+        const uri = context.createAuthenticatedUrl(`/d2l/api/le/1.25/${targetOuid}/dropbox/folders/`, 'POST');
 
         const options = {
             uri,
