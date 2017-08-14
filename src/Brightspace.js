@@ -7,7 +7,7 @@ class Brightspace {
             .createUserContextWithValues('https://courses.ashworthcollege.edu', 443, userId, userKey);
     }
 
-    async createDropboxFolder(assignmentName, instructions, context) {
+    async createDropboxFolder(assignmentName, instructions, targetOuid, context) {
         const dropboxFolderUpdateData = {
             CategoryId: null,
             Name: assignmentName,
@@ -22,7 +22,7 @@ class Brightspace {
             NotificationEmail: null,
             IsHidden: false,
         };
-        const uri = context.createAuthenticatedUrl('/d2l/api/le/1.25/6649/dropbox/folders/', 'POST');
+        const uri = context.createAuthenticatedUrl(`d2l/api/le/1.25/${targetOuid}/dropbox/folders/`, 'POST');
 
         const options = {
             uri,
