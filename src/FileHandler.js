@@ -11,23 +11,25 @@ class FileHandler {
     }
 
     async readCsv(csvFilePath) {
-        console.log('Reading CSV file...');
+        return new Promise((resolve, reject) => {
+            console.log('Reading CSV file...');
 
-        const exams = [];
-        await csv()
-            .fromFile(csvFilePath)
-            .on('json', (exam) => {
-                exams.push(exam);
-            })
-            .on('done', (error) => {
-                if (error) {
-                    throw error;
-                }
-                else {
-                    console.log('File read.');
-                }
-            });
-        return exams;
+            const lines = [];
+            return csv()
+                .fromFile(csvFilePath)
+                .on('json', (exam) => {
+                    lines.push(exam);
+                })
+                .on('done', (error) => {
+                    if (error) {
+                        reject(error);
+                    }
+                    else {
+                        console.log('File read.');
+                        resolve(lines);
+                    }
+                });
+        });
     }
 }
 
