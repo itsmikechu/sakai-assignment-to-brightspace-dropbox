@@ -8,18 +8,26 @@ class App {
     static async process(assignmentInfo, loginCookie) {
         const sakai = new Sakai();
 
-        const assignments = await sakai.getAssignments(assignmentInfo.guid, loginCookie)
-        assignments.map(async (assignment) => {
-            assignment.attachments = await sakai.getAssignmentAttachments(assignment, loginCookie);
-        });
-        console.log(`Retrieved information on ${assignments.length} Sakai assignments.`);
+        const assignments = await sakai.getAssignments(assignmentInfo.guid, loginCookie);
 
-        console.log(assignments[0]);
+        if (assignments.length > 0) {
+            assignments.map(async (assignment) => {
+                assignment.attachments = await sakai.getAssignmentAttachments(assignment, loginCookie);
+            });
 
-        const brightspace = new Brightspace();
-        //const context = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
+            const brightspace = new Brightspace();
+            const brightspaceContext = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
 
-        //await brightspace.createDropboxFolder('FromMigrationApp', 'Yay, you did it. Here are some instructions', ouid, context);
+            assignments.map(async (assignment) => {
+                await brightspace
+                    .createDropboxFolder(assignment.title, assignment.instructions, assignmentInfo.ouid, brightspaceContext)
+                    .catch((error) => {
+                        console.log(error);
+                        throw error;
+                    });
+                console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
+            });
+        }
     }
 
     static async main() {
