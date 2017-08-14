@@ -12,15 +12,15 @@ class Brightspace {
             CategoryId: null,
             Name: assignmentName,
             CustomInstructions: {
-                Text: instructions,
-                Html: `<p>${instructions}</p>`,
+                Type: 'Text',
+                Content: instructions,
             },
             Availability: null,
             GroupTypeId: null,
             DueDate: null,
             DisplayInCalendar: false,
             NotificationEmail: null,
-            IsHidden: null,
+            IsHidden: false,
         };
         const uri = context.createAuthenticatedUrl('/d2l/api/le/1.25/6649/dropbox/folders/', 'POST');
 
