@@ -4,6 +4,7 @@
   "description": "Migrates assignments from Sakai to dropboxes in Brightspace",
   "main": "app.js",
   "dependencies": {
+    "csvtojson": "^1.1.7",
     "fs-extra": "^4.0.1",
     "request": "^2.81.0",
     "request-promise-native": "^1.0.4",
