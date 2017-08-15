@@ -11,10 +11,13 @@
     "tough-cookie": "^2.3.2",
     "valence": "^1.0.3"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "watch": "^1.0.2"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node src/app.js"
+    "start": "node src/app.js",
+    "watch": "watch \"npm run start\" src"
   },
   "repository": {
     "type": "git",
