@@ -11,25 +11,27 @@ class App {
         const assignments = await sakai.getAssignments(assignmentInfo.guid, loginCookie);
 
         if (assignments.length > 0) {
+            const brightspace = new Brightspace();
+            const brightspaceContext = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
+
             for (let assignment of assignments) {
                 assignment.attachments = await sakai.getAssignmentAttachmentInfo(assignment, loginCookie);
                 for (let attachment of assignment.attachments) {
                     attachment.savePath = `${config.workingFolder}\\${assignmentInfo.guid}\\${attachment.name}`;
                     await sakai.downloadAssignmentAttachment(attachment.url, attachment.savePath, loginCookie);
                 }
+
+                assignment.brightspaceAssignmentId = await brightspace
+                    .createDropboxFolder(assignment, assignmentInfo.ouid, brightspaceContext)
+                    .catch((error) => {
+                        console.log(error);
+                        throw error;
+                    });
+
+                await brightspace.uploadAssignmentAttachments(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount);
+
+                console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
             }
-
-            const brightspace = new Brightspace();
-            const brightspaceContext = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
-
-            await brightspace
-                .createDropboxFolder(assignment.title, assignment.instructions, assignmentInfo.ouid, brightspaceContext)
-                .catch((error) => {
-                    console.log(error);
-                    throw error;
-                });
-                
-            console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
         }
     }
 
