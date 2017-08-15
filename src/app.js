@@ -14,16 +14,13 @@ class App {
             const brightspace = new Brightspace();
             const brightspaceContext = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
 
-            const assignmentsWithAttachments = assignments.map(async (assignment) => {
-                assignment.attachments = await sakai.getAssignmentAttachmentInfo(assignment, loginCookie);
-                return assignment
-                console.log(assignment);
-                // await assignment.attachments.forEach(async (attachment) => {
-                //     await sakai.downloadAssignmentAttachment(attachment.url, `${config.workingFolder}\\${assignment.id}\\${attachment.name}`);
-                // });
-            });
-
-            console.log(assignmentsWithAttachments);
+            for (let assignment of assignments) {
+                const attachments = await sakai.getAssignmentAttachmentInfo(assignment, loginCookie);
+                for (let attachment of attachments) {
+                    console.log(attachment);
+                    await sakai.downloadAssignmentAttachment(attachment.url, `${config.workingFolder}\\${assignment.id}\\${attachment.name}`);
+                }
+            }
 
             // assignments.forEach(async (assignment) => {
             //     await brightspace
