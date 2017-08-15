@@ -37,10 +37,7 @@ class App {
         const assignments = await fileHandler.readCsv(`${config.workingFolder}\\assignments.csv`);
 
         // https://stackoverflow.com/questions/8847766/how-to-convert-json-to-csv-format-and-store-in-a-variable
-        const fields = Object.keys(assignments[0])
-        const replacer = (key, value) => { return value === null ? '' : value }
-        const outputCsvFile = `${config.workingFolder}\\assignments-output.csv`;
-
+        const fields = Object.keys(assignments[0]);
         const header = fields.join(',');
         if (!header.includes('guid') || !header.includes('ouid')) {
             throw 'File must have column headers "guid" and "ouid" exactly.';
@@ -50,6 +47,9 @@ class App {
         const loginCookie = await sakai.getLoginCookie(config.sakai.userId, config.sakai.password);
 
         if (loginCookie) {
+            const replacer = (key, value) => { return value === null ? '' : value }
+            const outputCsvFile = `${config.workingFolder}\\assignments-output.csv`;
+
             for (let assignment of assignments) {
                 await App.process(assignment, loginCookie);
 
