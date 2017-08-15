@@ -11,22 +11,29 @@ class App {
         const assignments = await sakai.getAssignments(assignmentInfo.guid, loginCookie);
 
         if (assignments.length > 0) {
-            assignments.map(async (assignment) => {
-                assignment.attachments = await sakai.getAssignmentAttachments(assignment, loginCookie);
-            });
-
             const brightspace = new Brightspace();
             const brightspaceContext = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
 
-            assignments.map(async (assignment) => {
-                await brightspace
-                    .createDropboxFolder(assignment.title, assignment.instructions, assignmentInfo.ouid, brightspaceContext)
-                    .catch((error) => {
-                        console.log(error);
-                        throw error;
-                    });
-                console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
+            const assignmentsWithAttachments = assignments.map(async (assignment) => {
+                assignment.attachments = await sakai.getAssignmentAttachmentInfo(assignment, loginCookie);
+                return assignment
+                console.log(assignment);
+                // await assignment.attachments.forEach(async (attachment) => {
+                //     await sakai.downloadAssignmentAttachment(attachment.url, `${config.workingFolder}\\${assignment.id}\\${attachment.name}`);
+                // });
             });
+
+            console.log(assignmentsWithAttachments);
+
+            // assignments.forEach(async (assignment) => {
+            //     await brightspace
+            //         .createDropboxFolder(assignment.title, assignment.instructions, assignmentInfo.ouid, brightspaceContext)
+            //         .catch((error) => {
+            //             console.log(error);
+            //             throw error;
+            //         });
+            //     console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
+            // });
         }
     }
 

@@ -52,11 +52,16 @@ class Sakai {
             });
     }
 
-    async getAssignmentAttachments(assignment, loginCookie) {
+    async getAssignmentAttachmentInfo(assignment, loginCookie) {
+        console.log('Getting attachment info.')
         return request.get(this.makeOptions(`/direct/assignment/item/${assignment.id}.json`, loginCookie))
             .then((responseBody) => {
                 return JSON.parse(responseBody).attachments;
-            });
+            }); 
+    }
+
+    async downloadAssignmentAttachment(url, savePath) {
+        console.log(url, savePath);
     }
 }
 
