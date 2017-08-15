@@ -1,5 +1,8 @@
 const request = require('request-promise-native');
 const tough = require('tough-cookie');
+const FileHandler = require('./FileHandler');
+
+const host = 'https://study.ashworthcollege.edu';
 
 class Sakai {
     async getLoginCookie(username, password) {
@@ -26,8 +29,6 @@ class Sakai {
     }
 
     makeOptions(requestPath, loginCookie) {
-        const host = 'https://study.ashworthcollege.edu';
-
         const cookie = new tough.Cookie({
             key: loginCookie.key,
             value: loginCookie.value,
@@ -45,23 +46,27 @@ class Sakai {
         };
     }
 
-    async getAssignments(siteUuid, loginCookie) {
+    getAssignments(siteUuid, loginCookie) {
         return request.get(this.makeOptions(`/direct/assignment/site/${siteUuid}.json`, loginCookie))
             .then((responseBody) => {
                 return JSON.parse(responseBody).assignment_collection;
             });
     }
 
-    async getAssignmentAttachmentInfo(assignment, loginCookie) {
-        console.log('Getting attachment info.')
+    getAssignmentAttachmentInfo(assignment, loginCookie) {
         return request.get(this.makeOptions(`/direct/assignment/item/${assignment.id}.json`, loginCookie))
             .then((responseBody) => {
                 return JSON.parse(responseBody).attachments;
-            }); 
+            });
     }
 
-    async downloadAssignmentAttachment(url, savePath) {
-        console.log(url, savePath);
+    async downloadAssignmentAttachment(url, savePath, loginCookie) {
+        const fileHandler = new FileHandler();
+        const urlPath = url.replace(host, '');
+        request.get(this.makeOptions(urlPath, loginCookie, true))
+            .then((responseBody) => {
+                fileHandler.writeBufferToPath(responseBody, savePath);
+            }); 
     }
 }
 

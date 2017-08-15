@@ -11,26 +11,25 @@ class App {
         const assignments = await sakai.getAssignments(assignmentInfo.guid, loginCookie);
 
         if (assignments.length > 0) {
-            const brightspace = new Brightspace();
-            const brightspaceContext = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
-
             for (let assignment of assignments) {
-                const attachments = await sakai.getAssignmentAttachmentInfo(assignment, loginCookie);
-                for (let attachment of attachments) {
-                    console.log(attachment);
-                    await sakai.downloadAssignmentAttachment(attachment.url, `${config.workingFolder}\\${assignment.id}\\${attachment.name}`);
+                assignment.attachments = await sakai.getAssignmentAttachmentInfo(assignment, loginCookie);
+                for (let attachment of assignment.attachments) {
+                    attachment.savePath = `${config.workingFolder}\\${assignmentInfo.guid}\\${attachment.name}`;
+                    await sakai.downloadAssignmentAttachment(attachment.url, attachment.savePath, loginCookie);
                 }
             }
 
-            // assignments.forEach(async (assignment) => {
-            //     await brightspace
-            //         .createDropboxFolder(assignment.title, assignment.instructions, assignmentInfo.ouid, brightspaceContext)
-            //         .catch((error) => {
-            //             console.log(error);
-            //             throw error;
-            //         });
-            //     console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
-            // });
+            const brightspace = new Brightspace();
+            const brightspaceContext = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
+
+            await brightspace
+                .createDropboxFolder(assignment.title, assignment.instructions, assignmentInfo.ouid, brightspaceContext)
+                .catch((error) => {
+                    console.log(error);
+                    throw error;
+                });
+                
+            console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
         }
     }
 
