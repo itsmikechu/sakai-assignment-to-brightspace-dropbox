@@ -10,6 +10,8 @@ class App {
 
         const assignments = await sakai.getAssignments(assignmentInfo.guid, loginCookie);
 
+        assignments.pop();
+
         if (assignments.length > 0) {
             const brightspace = new Brightspace();
             const brightspaceContext = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
@@ -29,7 +31,7 @@ class App {
                     });
 
                 await brightspace.uploadAssignmentAttachments(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount);
-
+                
                 console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
             }
         }

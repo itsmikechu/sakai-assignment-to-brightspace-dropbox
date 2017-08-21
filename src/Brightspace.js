@@ -13,9 +13,10 @@ class Brightspace {
             throw "No service account credentials supplied. Make sure they're present in the config.json";
         }
 
-        const nightmare = new Nightmare({ show: true });
+        require('nightmare-iframe-manager')(Nightmare);
+        require('nightmare-upload')(Nightmare);
 
-        const selector = '.d2l-datalist-style1';
+        const nightmare = new Nightmare({ show: true });
         await nightmare
             .goto('https://courses.ashworthcollege.edu/d2l/login')
             .type('#userName', serviceAccount.username)
@@ -23,29 +24,32 @@ class Brightspace {
             .click('button[primary]')
             .wait('.d2l-navigation-s-personal-menu')
             .goto(`https://courses.ashworthcollege.edu/d2l/lms/dropbox/admin/modify/folder_newedit_properties.d2l?db=${assignment.brightspaceAssignmentId}&ou=${targetOuid}`)
-            .wait('#z_bv') // Add a File button (which renders 3 ordinal [id] sooner in electron :shrug:)
+            .wait('#z_bv') // Add a File button (which renders 3 ordinal [id] sooner in Electron :shrug:)
             .click('#z_bv')
-            .wait(2000)  // Dialog appears
-            .evaluate((selector) => {
-                debugger;
-                return document.querySelector(selector).innerHtml;
-            }, selector)
-            .then((insides)=>{
-                console.log(insides);
+            .wait('.ddial_c_frame')
+            .wait(2000)
+            .enterIFrame('.ddial_c_frame')
+            //.click('div[title="My Computer"]') 
+            .evaluate(function () {
+                return new Promise((resolve, reject) => {
+                    setTimeout(() => {
+                        document.querySelector('div[title="My Computer"]').click(); // source from My Computer
+                        resolve();
+                    }, 1000);
+                })
+            })
+            .wait('.d2l-fileinput-addbuttons > button') // Drop files here, or click below! appears
+            .upload('.d2l-fileinput-input', assignment.savePath)
+            .wait('ul.d2l-fileinput-filelist > li[data-d2l-name]')
+            .exitIFrame() 
+            .click('table.d2l-dialog-buttons button[primary]') // Add button
+            .wait(5000) // 5 arbitrary seconds
+            .click('#z_a') // Save and Close
+            .wait('#d2l_1_22_198') // New Submission Folder button appears
+            .end()
+            .then((result) => {
+                console.log(result);
             });
-            // .click('.vui-list > li:nth-child(1) > div:nth-child(1)') // source from My Computer
-            // .wait('.d2l-fileinput-addbuttons > button') // Drop files here, or click below! appears
-            // .click('.d2l-fileinput-addbuttons > button') // Upload button
-            // // upload a file somehow
-            // .wait('ul.d2l-fileinput-filelist > li[data-d2l-name]')
-            // .click('table.d2l-dialog-buttons button[primary]') // Add button
-            // .wait(5000) // 5 arbitrary seconds
-            // .click('#z_a') // Save and Close
-            // .wait('#d2l_1_22_198') // New Submission Folder button appears
-            // .end()
-            // .then(() => {
-            //     console.log('There');
-            // });
     }
 
     async createDropboxFolder(assignment, targetOuid, context) {
@@ -74,7 +78,7 @@ class Brightspace {
             .then((responseBody) => {
                 return JSON.parse(responseBody).Id;
             });
-    } 
+    }
 }
 
 module.exports = Brightspace;
