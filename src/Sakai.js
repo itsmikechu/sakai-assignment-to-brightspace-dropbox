@@ -2,6 +2,7 @@ const request = require('request-promise-native');
 const tough = require('tough-cookie');
 const FileHandler = require('./FileHandler');
 const fs = require('fs-extra');
+const path = require('path');
 
 const host = 'https://study.ashworthcollege.edu';
 
@@ -63,7 +64,11 @@ class Sakai {
 
     async downloadAssignmentAttachment(url, savePath, loginCookie) {
         const urlPath = url.replace(host, '');
-        request.get(this.makeOptions(urlPath, loginCookie, true))
+        if (fs.exists(savePath)) {
+            return;
+        }
+        fs.mkdir(path.dirname(savePath));
+        await request.get(this.makeOptions(urlPath, loginCookie, true))
             .pipe(fs.createWriteStream(savePath));
     }
 }
