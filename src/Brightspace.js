@@ -47,7 +47,7 @@ class Brightspace {
             })
             .wait(1000)
             .evaluate((filename) => {
-                document.querySelector(`input[title*="${filename}"]`).click(); // click the file(s) checkbox
+                document.querySelector(`input[value*="${filename}"]`).click(); // click the file(s) checkbox
             }, filename)
             .exitIFrame()
             .click('table.d2l-dialog-buttons button[primary]') // Add button
