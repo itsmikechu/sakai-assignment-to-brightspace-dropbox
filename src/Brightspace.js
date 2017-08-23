@@ -16,43 +16,47 @@ class Brightspace {
         if (!serviceAccount.username || !serviceAccount.password) {
             throw "No service account credentials supplied. Make sure they're present in the config.json";
         }
+        
+        const firstAttachment = assignment.attachments[0];
+        const filename = path.win32.basename(firstAttachment.savePath);
+        
+        console.log(`Linking attachment ${filename} to assignment ${assignment.brightspaceAssignmentId} in course ${targetOuid}...`);
 
         require('nightmare-iframe-manager')(Nightmare);
         require('nightmare-upload')(Nightmare);
 
-        const nightmare = new Nightmare({ show: true });
+        const nightmare = new Nightmare({ show: false });
         await nightmare
             .goto('https://courses.ashworthcollege.edu/d2l/login')
             .type('#userName', serviceAccount.username)
             .type('#password', serviceAccount.password)
             .click('button[primary]')
-            .wait('.d2l-navigation-s-personal-menu')
+            .wait(1000)
             .goto(`https://courses.ashworthcollege.edu/d2l/lms/dropbox/admin/modify/folder_newedit_properties.d2l?db=${assignment.brightspaceAssignmentId}&ou=${targetOuid}`)
             .wait('#z_bv') // Add a File button (which renders 3 ordinal [id] sooner in Electron :shrug:)
             .click('#z_bv')
             .wait('.ddial_c_frame')
-            .wait(2000)
+            .wait(2000) // iframe loads slowly
             .enterIFrame('.ddial_c_frame')
-            //.click('div[title="My Computer"]') 
-            .evaluate(function () {
-                return new Promise((resolve, reject) => {
-                    setTimeout(() => {
-                        document.querySelector('div[title="My Computer"]').click(); // source from My Computer
-                        resolve();
-                    }, 1000);
-                })
+            .evaluate(() => {
+                document.querySelector('div[title="Course Offering Files"]').click(); // source from Course Offering Files
             })
-            .wait('.d2l-fileinput-addbuttons > button') // Drop files here, or click below! appears
-            .upload('.d2l-fileinput-input', assignment.savePath)
-            .wait('ul.d2l-fileinput-filelist > li[data-d2l-name]')
+            .wait(1000)
+            .evaluate(() => {
+                document.querySelector('a[onclick*="assignments"]').click(); // click assignments folder
+            })
+            .wait(1000)
+            .evaluate((filename) => {
+                document.querySelector(`input[title*="${filename}"]`).click(); // click the file(s) checkbox
+            }, filename)
             .exitIFrame()
             .click('table.d2l-dialog-buttons button[primary]') // Add button
-            .wait(5000) // 5 arbitrary seconds
+            .wait(1000) // arbitrary seconds 
             .click('#z_a') // Save and Close
-            .wait('#d2l_1_22_198') // New Submission Folder button appears
+            .wait('a[title="Quick Edit Folders"') // We've returned to the Assignment Submission Folders
             .end()
-            .then((result) => {
-                console.log(result);
+            .catch((error) => {
+                console.log(error);
             });
     }
 
@@ -63,10 +67,8 @@ class Brightspace {
 
         console.log(`Uploading file to WebDAV ${davUrl}/${davPath}/${filename} ...`);
 
-        await wfs.mkdir(`/${davPath}`, (response) => {
-            //console.log(response);
-        });
-        
+        await wfs.mkdir(`/${davPath}`, () => { });
+
         return await wfs.readFile(`/${davPath}/${filename}`, (error, data) => {
             if (data) {
                 return;
@@ -74,58 +76,7 @@ class Brightspace {
             else {
                 fs.createReadStream(firstAttachment.savePath).pipe(wfs.createWriteStream(`/${davPath}/${filename}`));
             }
-        }); 
-    }
-
-    async uploadAssignmentAttachmentToLocker(assignment, context) {
-        const firstAttachment = assignment.attachments[0];
-        const filename = path.win32.basename(firstAttachment.savePath);
-
-        const uri = context.createAuthenticatedUrl(`/d2l/api/le/1.25/locker/user/223/`, 'POST');
-
-        const fileDescription = {
-            Description: filename,
-            IsPublic: false,
-        };
-
-        const options = {
-            method: 'POST',
-            //proxy: 'http://127.0.0.1:8888',  // proxying through Fiddler to capture
-            headers: {
-                'Content-Type': 'multipart/mixed;boundary=xxBOUNDARYxx',
-            },
-            uri,
-            multipart: [
-                {
-                    'Content-Type': 'application/json',
-                    body: JSON.stringify(fileDescription),
-                },
-                {
-                    'Content-Type': mime.lookup(firstAttachment.savePath),
-                    body: fs.createReadStream(firstAttachment.savePath),
-                },
-            ]
-        };
-
-        //process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0'; // proxying through Fiddler to capture
-        return request(options)
-            .then((responseBody) => {
-                return JSON.parse(responseBody);
-            });
-    }
-
-    async deleteAssignmentAttachmentFromLocker(assignment, context) {
-        const filename = path.win32.basename(assignment.attachments[0].savePath);
-
-        const uri = context.createAuthenticatedUrl(`/d2l/api/le/1.25/locker/user/223`, 'DELETE');
-
-        const options = {
-            uri,
-        };
-        return request.delete(options)
-            .then((responseBody) => {
-                return JSON.parse(responseBody)
-            });
+        });
     }
 
     async createDropboxFolder(assignment, targetOuid, context) {
