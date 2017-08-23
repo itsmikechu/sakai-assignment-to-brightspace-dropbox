@@ -30,11 +30,25 @@ class App {
                         throw error;
                     });
 
-                await brightspace.uploadAssignmentAttachmentToLocker(assignment, brightspaceContext);
+                const courseInformation = await brightspace
+                    .getCourseInformation(assignmentInfo.ouid, brightspaceContext)
+                    .catch((error) => {
+                        console.log(error);
+                        throw error;
+                    });
 
-                await brightspace.linkAssignmentAttachment(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount);
+                // await brightspace.uploadAssignmentAttachmentToLocker(assignment, brightspaceContext);
+                await brightspace.uploadAssignmentAttachmentToDav(
+                    assignment,
+                    `https://${config.brightspace.webDav.host}`,
+                    config.brightspace.serviceAccount.username,
+                    config.brightspace.serviceAccount.password,
+                    `${config.brightspace.webDav.dumpPath}/${assignmentInfo.ouid}-${courseInformation.Code}/assignments`
+                );
 
-                await brightspace.deleteAssignmentAttachmentFromLocker(assignment, brightspaceContext);
+                //await brightspace.linkAssignmentAttachment(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount);
+
+                //await brightspace.deleteAssignmentAttachmentFromLocker(assignment, brightspaceContext);
 
                 console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
             }

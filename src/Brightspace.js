@@ -4,6 +4,7 @@ const Nightmare = require('nightmare');
 const path = require('path');
 const mime = require('mime-types');
 const fs = require('fs-extra');
+const dav = require('webdav-fs');
 
 class Brightspace {
     contextFactory(appId, appKey, userId, userKey) {
@@ -55,11 +56,32 @@ class Brightspace {
             });
     }
 
+    async uploadAssignmentAttachmentToDav(assignment, davUrl, davUsername, davPassword, davPath) {
+        const firstAttachment = assignment.attachments[0];
+        const filename = path.win32.basename(firstAttachment.savePath);
+        const wfs = dav(davUrl, davUsername, davPassword);
+
+        console.log(`Uploading file to WebDAV ${davUrl}/${davPath}/${filename} ...`);
+
+        await wfs.mkdir(`/${davPath}`, (response) => {
+            //console.log(response);
+        });
+        
+        return await wfs.readFile(`/${davPath}/${filename}`, (error, data) => {
+            if (data) {
+                return;
+            }
+            else {
+                fs.createReadStream(firstAttachment.savePath).pipe(wfs.createWriteStream(`/${davPath}/${filename}`));
+            }
+        }); 
+    }
+
     async uploadAssignmentAttachmentToLocker(assignment, context) {
         const firstAttachment = assignment.attachments[0];
         const filename = path.win32.basename(firstAttachment.savePath);
 
-        const uri = context.createAuthenticatedUrl(`/d2l/api/le/1.25/locker/user/223/foo`, 'POST');
+        const uri = context.createAuthenticatedUrl(`/d2l/api/le/1.25/locker/user/223/`, 'POST');
 
         const fileDescription = {
             Description: filename,
@@ -68,7 +90,7 @@ class Brightspace {
 
         const options = {
             method: 'POST',
-            proxy: 'http://127.0.0.1:8888',
+            //proxy: 'http://127.0.0.1:8888',  // proxying through Fiddler to capture
             headers: {
                 'Content-Type': 'multipart/mixed;boundary=xxBOUNDARYxx',
             },
@@ -78,14 +100,14 @@ class Brightspace {
                     'Content-Type': 'application/json',
                     body: JSON.stringify(fileDescription),
                 },
-                // {
-                //     'Content-Type': mime.lookup(firstAttachment.savePath),
-                //     body: fs.createReadStream(firstAttachment.savePath),
-                // },
+                {
+                    'Content-Type': mime.lookup(firstAttachment.savePath),
+                    body: fs.createReadStream(firstAttachment.savePath),
+                },
             ]
         };
 
-        process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+        //process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0'; // proxying through Fiddler to capture
         return request(options)
             .then((responseBody) => {
                 return JSON.parse(responseBody);
@@ -107,6 +129,7 @@ class Brightspace {
     }
 
     async createDropboxFolder(assignment, targetOuid, context) {
+        console.log('Creating dropbox/assignment folder...');
         const dropboxFolderUpdateData = {
             CategoryId: null,
             Name: assignment.title,
@@ -131,6 +154,20 @@ class Brightspace {
         return request.post(options)
             .then((responseBody) => {
                 return JSON.parse(responseBody).Id;
+            });
+    }
+
+    async getCourseInformation(ouid, context) {
+        console.log('Getting course information.');
+        const uri = context.createAuthenticatedUrl(`/d2l/api/lp/1.18/courses/${ouid}`, 'GET');
+
+        const options = {
+            uri,
+        };
+
+        return request.get(options)
+            .then((responseBody) => {
+                return JSON.parse(responseBody);
             });
     }
 }
