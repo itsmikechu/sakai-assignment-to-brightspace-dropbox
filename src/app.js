@@ -10,8 +10,6 @@ class App {
 
         const assignments = await sakai.getAssignments(assignmentInfo.guid, loginCookie);
 
-        assignments.pop();
-
         if (assignments.length > 0) {
             const brightspace = new Brightspace();
             const brightspaceContext = brightspace.contextFactory(config.brightspace.appId, config.brightspace.appKey, config.brightspace.userId, config.brightspace.userKey);
@@ -37,7 +35,6 @@ class App {
                         throw error;
                     });
 
-                // await brightspace.uploadAssignmentAttachmentToLocker(assignment, brightspaceContext);
                 await brightspace.uploadAssignmentAttachmentToDav(
                     assignment,
                     `https://${config.brightspace.webDav.host}`,
@@ -46,9 +43,7 @@ class App {
                     `${config.brightspace.webDav.dumpPath}/${assignmentInfo.ouid}-${courseInformation.Code}/assignments`
                 );
 
-                //await brightspace.linkAssignmentAttachment(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount);
-
-                //await brightspace.deleteAssignmentAttachmentFromLocker(assignment, brightspaceContext);
+                await brightspace.linkAssignmentAttachment(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount);
 
                 console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
             }
