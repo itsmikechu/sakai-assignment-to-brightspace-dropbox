@@ -1,6 +1,7 @@
 const request = require('request-promise-native');
 const tough = require('tough-cookie');
 const FileHandler = require('./FileHandler');
+const fs = require('fs-extra');
 
 const host = 'https://study.ashworthcollege.edu';
 
@@ -61,12 +62,9 @@ class Sakai {
     }
 
     async downloadAssignmentAttachment(url, savePath, loginCookie) {
-        const fileHandler = new FileHandler();
         const urlPath = url.replace(host, '');
         request.get(this.makeOptions(urlPath, loginCookie, true))
-            .then((responseBody) => {
-                fileHandler.writeBufferToPath(responseBody, savePath);
-            }); 
+            .pipe(fs.createWriteStream(savePath));
     }
 }
 

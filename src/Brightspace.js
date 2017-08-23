@@ -1,6 +1,9 @@
 const D2L = require('valence');
 const request = require('request-promise-native');
 const Nightmare = require('nightmare');
+const path = require('path');
+const mime = require('mime-types');
+const fs = require('fs-extra');
 
 class Brightspace {
     contextFactory(appId, appKey, userId, userKey) {
@@ -8,7 +11,7 @@ class Brightspace {
             .createUserContextWithValues('https://courses.ashworthcollege.edu', 443, userId, userKey);
     }
 
-    async uploadAssignmentAttachments(assignment, targetOuid, serviceAccount) {
+    async linkAssignmentAttachment(assignment, targetOuid, serviceAccount) {
         if (!serviceAccount.username || !serviceAccount.password) {
             throw "No service account credentials supplied. Make sure they're present in the config.json";
         }
@@ -41,7 +44,7 @@ class Brightspace {
             .wait('.d2l-fileinput-addbuttons > button') // Drop files here, or click below! appears
             .upload('.d2l-fileinput-input', assignment.savePath)
             .wait('ul.d2l-fileinput-filelist > li[data-d2l-name]')
-            .exitIFrame() 
+            .exitIFrame()
             .click('table.d2l-dialog-buttons button[primary]') // Add button
             .wait(5000) // 5 arbitrary seconds
             .click('#z_a') // Save and Close
@@ -49,6 +52,57 @@ class Brightspace {
             .end()
             .then((result) => {
                 console.log(result);
+            });
+    }
+
+    async uploadAssignmentAttachmentToLocker(assignment, context) {
+        const firstAttachment = assignment.attachments[0];
+        const filename = path.win32.basename(firstAttachment.savePath);
+
+        const uri = context.createAuthenticatedUrl(`/d2l/api/le/1.25/locker/user/223/foo`, 'POST');
+
+        const fileDescription = {
+            Description: filename,
+            IsPublic: false,
+        };
+
+        const options = {
+            method: 'POST',
+            proxy: 'http://127.0.0.1:8888',
+            headers: {
+                'Content-Type': 'multipart/mixed;boundary=xxBOUNDARYxx',
+            },
+            uri,
+            multipart: [
+                {
+                    'Content-Type': 'application/json',
+                    body: JSON.stringify(fileDescription),
+                },
+                // {
+                //     'Content-Type': mime.lookup(firstAttachment.savePath),
+                //     body: fs.createReadStream(firstAttachment.savePath),
+                // },
+            ]
+        };
+
+        process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = '0';
+        return request(options)
+            .then((responseBody) => {
+                return JSON.parse(responseBody);
+            });
+    }
+
+    async deleteAssignmentAttachmentFromLocker(assignment, context) {
+        const filename = path.win32.basename(assignment.attachments[0].savePath);
+
+        const uri = context.createAuthenticatedUrl(`/d2l/api/le/1.25/locker/user/223`, 'DELETE');
+
+        const options = {
+            uri,
+        };
+        return request.delete(options)
+            .then((responseBody) => {
+                return JSON.parse(responseBody)
             });
     }
 

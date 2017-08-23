@@ -2,11 +2,6 @@ const fs = require('fs-extra');
 const csv = require('csvtojson');
 
 class FileHandler {
-    async writeBufferToPath(buffer, filePath) {
-        await fs.createFile(filePath);
-        await fs.writeFile(filePath, buffer);
-    }
-
     async appendStringToPath(dataString, filePath) {
         await fs.appendFile(filePath, dataString);
     }

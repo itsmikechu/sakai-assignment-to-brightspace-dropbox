@@ -30,8 +30,12 @@ class App {
                         throw error;
                     });
 
-                await brightspace.uploadAssignmentAttachments(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount);
-                
+                await brightspace.uploadAssignmentAttachmentToLocker(assignment, brightspaceContext);
+
+                await brightspace.linkAssignmentAttachment(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount);
+
+                await brightspace.deleteAssignmentAttachmentFromLocker(assignment, brightspaceContext);
+
                 console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
             }
         }
