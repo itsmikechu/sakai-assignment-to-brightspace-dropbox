@@ -1,8 +1,8 @@
 const request = require('request-promise-native');
-const tough = require('tough-cookie');
 const FileHandler = require('./FileHandler');
-const fs = require('fs-extra');
+const tough = require('tough-cookie');
 const path = require('path');
+const fs = require('fs-extra');
 
 const host = 'https://study.ashworthcollege.edu';
 
@@ -13,7 +13,7 @@ class Sakai {
             resolveWithFullResponse: true,
         };
         const cookieKey = 'SAKAIID';
-        return request.post(options)
+        return await request.post(options)
             .form({
                 _username: username,
                 _password: password,
@@ -48,15 +48,17 @@ class Sakai {
         };
     }
 
-    getAssignments(siteUuid, loginCookie) {
-        return request.get(this.makeOptions(`/direct/assignment/site/${siteUuid}.json`, loginCookie))
+    async getAssignments(siteUuid, loginCookie) {
+        console.log(`Getting assignments from Sakai courses ${siteUuid}...`);
+        return await request.get(this.makeOptions(`/direct/assignment/site/${siteUuid}.json`, loginCookie))
             .then((responseBody) => {
                 return JSON.parse(responseBody).assignment_collection;
             });
     }
 
-    getAssignmentAttachmentInfo(assignment, loginCookie) {
-        return request.get(this.makeOptions(`/direct/assignment/item/${assignment.id}.json`, loginCookie))
+    async getAssignmentAttachmentInfo(assignment, loginCookie) {
+        console.log(`Get attachments for assignment ${assignment.id}...`)
+        return await request.get(this.makeOptions(`/direct/assignment/item/${assignment.id}.json`, loginCookie))
             .then((responseBody) => {
                 return JSON.parse(responseBody).attachments;
             });
@@ -64,12 +66,20 @@ class Sakai {
 
     async downloadAssignmentAttachment(url, savePath, loginCookie) {
         const urlPath = url.replace(host, '');
-        if (fs.exists(savePath)) {
-            return;
-        }
-        fs.mkdir(path.dirname(savePath));
-        await request.get(this.makeOptions(urlPath, loginCookie, true))
-            .pipe(fs.createWriteStream(savePath));
+        const fileHandler = new FileHandler();
+
+        console.log(`Downloading attachment from ${urlPath}...`);
+
+        await fileHandler.makeDirectory(path.dirname(savePath));
+
+        const options = this.makeOptions(urlPath, loginCookie);
+        options.resolveWithFullResponse = true;
+        options.encoding = null;
+
+        await request.get(options)
+            .then((response) => {
+                fs.writeFileSync(savePath, response.body);
+            });
     }
 }
 

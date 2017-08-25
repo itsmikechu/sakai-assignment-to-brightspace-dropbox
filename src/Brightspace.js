@@ -26,7 +26,7 @@ class Brightspace {
         require('nightmare-upload')(Nightmare);
 
         const nightmare = new Nightmare({ show: false });
-        await nightmare
+        return await nightmare
             .goto('https://courses.ashworthcollege.edu/d2l/login')
             .type('#userName', serviceAccount.username)
             .type('#password', serviceAccount.password)
@@ -54,10 +54,7 @@ class Brightspace {
             .wait(1000) // arbitrary seconds 
             .click('#z_a') // Save and Close
             .wait('a[title="Quick Edit Folders"') // We've returned to the Assignment Submission Folders
-            .end()
-            .catch((error) => {
-                console.log(error);
-            });
+            .end();
     }
 
     async uploadAssignmentAttachmentToDav(assignment, davUrl, davUsername, davPassword, davPath) {

@@ -20,7 +20,7 @@ class App {
                     attachment.savePath = `${config.workingFolder}\\${assignmentInfo.guid}\\${attachment.name}`;
                     await sakai.downloadAssignmentAttachment(attachment.url, attachment.savePath, loginCookie);
                 }
-
+                
                 assignment.brightspaceAssignmentId = await brightspace
                     .createDropboxFolder(assignment, assignmentInfo.ouid, brightspaceContext)
                     .catch((error) => {
@@ -43,7 +43,12 @@ class App {
                     `${config.brightspace.webDav.dumpPath}/${assignmentInfo.ouid}-${courseInformation.Code}/assignments`
                 );
 
-                await brightspace.linkAssignmentAttachment(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount);
+                await brightspace
+                    .linkAssignmentAttachment(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount)
+                    .catch((error) => {
+                        console.log(error);
+                        throw error;
+                    })
 
                 console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
             }

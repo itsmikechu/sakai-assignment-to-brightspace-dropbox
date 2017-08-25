@@ -6,6 +6,12 @@ class FileHandler {
         await fs.appendFile(filePath, dataString);
     }
 
+    async makeDirectory(directoryPath) {
+        return await fs
+            .mkdir(directoryPath)
+            .catch((error) => { });
+    }
+
     async readCsv(csvFilePath) {
         return new Promise((resolve, reject) => {
             console.log('Reading CSV file...');
