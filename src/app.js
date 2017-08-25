@@ -20,7 +20,7 @@ class App {
                     attachment.savePath = `${config.workingFolder}\\${assignmentInfo.guid}\\${attachment.name}`;
                     await sakai.downloadAssignmentAttachment(attachment.url, attachment.savePath, loginCookie);
                 }
-                
+
                 assignment.brightspaceAssignmentId = await brightspace
                     .createDropboxFolder(assignment, assignmentInfo.ouid, brightspaceContext)
                     .catch((error) => {
@@ -74,15 +74,25 @@ class App {
         if (loginCookie) {
             const replacer = (key, value) => { return value === null ? '' : value }
             const outputCsvFile = `${config.workingFolder}\\assignments-output.csv`;
+            const errorCsvFile = `${config.workingFolder}\\assignments-errors.csv`;
 
             for (let assignment of assignments) {
-                await App.process(assignment, loginCookie);
+                try {
+                    await App.process(assignment, loginCookie);
 
-                const csv = fields.map((fieldName) => {
-                    return JSON.stringify(assignment[fieldName], replacer)
-                }).join(',');
+                    const csv = fields.map((fieldName) => {
+                        return JSON.stringify(assignment[fieldName], replacer)
+                    }).join(',');
 
-                await fileHandler.appendStringToPath(`${csv}\r\n`, outputCsvFile);
+                    await fileHandler.appendStringToPath(`${csv}\r\n`, outputCsvFile);
+                }
+                catch (error) {
+                    const csv = fields.map((fieldName) => {
+                        return JSON.stringify(assignment[fieldName], replacer)
+                    }).join(',');
+
+                    await fileHandler.appendStringToPath(`${csv}\r\n`, errorCsvFile);
+                }
             }
         }
         else {
