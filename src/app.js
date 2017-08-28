@@ -28,27 +28,29 @@ class App {
                         throw error;
                     });
 
-                const courseInformation = await brightspace
-                    .getCourseInformation(assignmentInfo.ouid, brightspaceContext)
-                    .catch((error) => {
-                        console.log(error);
-                        throw error;
-                    });
+                if (assignment.attachments.length > 0) {
+                    const courseInformation = await brightspace
+                        .getCourseInformation(assignmentInfo.ouid, brightspaceContext)
+                        .catch((error) => {
+                            console.log(error);
+                            throw error;
+                        });
 
-                await brightspace.uploadAssignmentAttachmentToDav(
-                    assignment,
-                    `https://${config.brightspace.webDav.host}`,
-                    config.brightspace.serviceAccount.username,
-                    config.brightspace.serviceAccount.password,
-                    `${config.brightspace.webDav.dumpPath}/${assignmentInfo.ouid}-${courseInformation.Code}/assignments`
-                );
+                    await brightspace.uploadAssignmentAttachmentToDav(
+                        assignment,
+                        `https://${config.brightspace.webDav.host}`,
+                        config.brightspace.serviceAccount.username,
+                        config.brightspace.serviceAccount.password,
+                        `${config.brightspace.webDav.dumpPath}/${assignmentInfo.ouid}-${courseInformation.Code}/assignments`
+                    );
 
-                await brightspace
-                    .linkAssignmentAttachment(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount)
-                    .catch((error) => {
-                        console.log(error);
-                        throw error;
-                    })
+                    await brightspace
+                        .linkAssignmentAttachment(assignment, assignmentInfo.ouid, config.brightspace.serviceAccount)
+                        .catch((error) => {
+                            console.log(error);
+                            throw error;
+                        });
+                }
 
                 console.log(`Created assignment ${assignment.title} in OUID ${assignmentInfo.ouid}.`);
             }
