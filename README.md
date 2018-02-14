@@ -17,3 +17,5 @@ You'll need a config.json near your app entry point (/build dir) that looks like
     }
 } 
 ```
+--- 
+A quick utility for Ashworth College
